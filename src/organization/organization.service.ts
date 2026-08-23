@@ -15,6 +15,8 @@ export type onOrganizationReturnCreate = {
   data: Organization | string;
 };
 
+
+
 @Injectable()
 export class OrganizationService {
   constructor(private readonly database: DatabaseService) {}

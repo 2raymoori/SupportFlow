@@ -5,9 +5,10 @@ import { DatabaseModule } from './database/database.module';
 import 'dotenv/config';
 import { RoleModule } from './role/role.module';
 import { OrganizationModule } from './organization/organization.module';
+import { UserModule } from './user/user.module';
 
 @Module({
-  imports: [DatabaseModule, RoleModule, OrganizationModule],
+  imports: [DatabaseModule, RoleModule, OrganizationModule, UserModule],
   controllers: [AppController],
   providers: [AppService],
 })

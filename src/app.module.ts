@@ -4,11 +4,10 @@ import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import 'dotenv/config';
 import { RoleModule } from './role/role.module';
-
-const DATABASE_URL = process.env.DATABASE_URL;
+import { OrganizationModule } from './organization/organization.module';
 
 @Module({
-  imports: [DatabaseModule,RoleModule],
+  imports: [DatabaseModule, RoleModule, OrganizationModule],
   controllers: [AppController],
   providers: [AppService],
 })

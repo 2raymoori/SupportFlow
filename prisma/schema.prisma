@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TicketStatus {
+  RESOLVED
+  PENDING
+  INPROGRESS
+}
+
+enum TicketPriority {
+  HIGH
+  LOW
+  MEDIUM
+}
+
+enum AttachmentType {
+  pdf
+  jpg
+  jpeg
+  png
+}
+
+model RoleOLD {
+  id        Int      @id @default(autoincrement())
+  roleName  String   @unique
+  createdAt DateTime @default(now())
+}
+
+model Role {
+  id        Int      @id @default(autoincrement())
+  roleName  String   @unique
+  createdAt DateTime @default(now())
+
+  memberships OrganizationMembership[]
+}
+
+model OrganizationOLD {
+  id               Int      @id @default(autoincrement())
+  organizationName String   @unique
+  createdAt        DateTime @default(now())
+}
+
+model Organization {
+  id               Int      @id @default(autoincrement())
+  organizationName String   @unique
+  createdAt        DateTime @default(now())
+
+  memberships OrganizationMembership[]
+  tickets     Ticket[]
+  auditLogs   AuditLogs[]
+}
+
+model User {
+  id             Int       @id @default(autoincrement())
+  email          String    @unique
+  hashedPassword String    @unique
+  lastLogin      DateTime?
+  createdAt      DateTime  @default(now())
+
+  memberships     OrganizationMembership[]
+  createdTickets  Ticket[]                 @relation("TicketCreator")
+  assignedTickets Ticket[]                 @relation("TicketAssignee")
+  comments        Comments[]
+  auditLogs       AuditLogs[]
+}
+
+model OrganizationMembership {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  organizationId Int
+  roleId         Int
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  role         Role         @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, organizationId])
+}
+
+model Ticket {
+  ticketId       Int            @id @default(autoincrement())
+  assignedTo     Int?
+  title          String
+  description    String
+  organizationId Int
+  creatorId      Int
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  ticketStatus   TicketStatus
+  ticketPriority TicketPriority
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  creator      User         @relation("TicketCreator", fields: [creatorId], references: [id])
+  assignee     User?        @relation("TicketAssignee", fields: [assignedTo], references: [id])
+
+  comments    Comments[]
+  auditLogs   AuditLogs[]
+  attachments Attachments[]
+}
+
+model Comments {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  authorId  Int
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ticket Ticket @relation(fields: [ticketId], references: [ticketId])
+  author User   @relation(fields: [authorId], references: [id])
+}
+
+model AuditLogs {
+  id             Int      @id @default(autoincrement())
+  ticketId       Int?
+  createdAt      DateTime @default(now())
+  action         String
+  organizationId Int
+  description    String
+  creatorId      Int
+
+  ticket       Ticket?      @relation(fields: [ticketId], references: [ticketId])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  creator      User         @relation(fields: [creatorId], references: [id])
+}
+
+model Attachments {
+  id             Int            @id @default(autoincrement())
+  ticketId       Int
+  attachmentType AttachmentType
+  createdAt      DateTime       @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [ticketId])
+}
